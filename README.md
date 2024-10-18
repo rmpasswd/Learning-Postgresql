@@ -66,7 +66,7 @@ the 'if exists' is to not mandatory.
 And yes. you have to change table name and column name in seperate commands! look *closely*:
 ![](./images/renaming.png)
 
-id column should be of *serial* data type. But changing a data type to serial is .....['hard!'](https://www.postgresql-archive.org/ALTER-TABLE-with-TYPE-serial-does-not-work-td1914514.html). So just drop the column and create again!:
+id column should be of *serial* data type. But changing a data type to serial is .....['hard!'](https://www.postgresql.org/message-id/gm32cb%24vkk%243%40reversiblemaps.ath.cx). So just drop the column and create again!:
 `ALTER TABLE greetings ADD COLUMN id serial not null;ALTER TABLE greetings ADD PRIMARY KEYS(id);` ->  also takes multiple column names! The 'id' column(or whatever column is provided) should have unique entries for each row.
 
 ![](./images/fixed.type.png)
