@@ -80,4 +80,33 @@ There are two networking options when we are setting up our azure server:
 > When you create an Azure Database for PostgreSQL flexible server you select either Private access or Public access. Once your server has been created, you cannot change your network option.
 
 
+Password acces is of two types: regular password and SCRAM(Salted Challenge Response Authentication Mechanism). Two paramters, password_encryption and azure.accepted_password_auth_method, default to sram-sha-256
+
+
+**Roles:**  
+[official docs.](https://www.postgresql.org/docs/current/user-manag.html#:~:text=permissions%20using%20the-,concept%20of%20roles,-.%20A%20role%20can)  
+Azure Database for PostgreSQL server is created with three default roles View all the server roles by executing `SELECT * FROM pg_roles;`  
+
+To create admin users in Azure Database for PostgreSQL: 
+`CREATE ROLE <new_user> WITH LOGIN NOSUPERUSER INHERIT CREATEDB CREATEROLE NOREPLICATION PASSWORD '<StrongPassword!>';
+GRANT azure_pg_admin TO <new_user>;`  
+
+`azure_pg_admin` here is a role. We can also just grant a priviledge to a user. Following does three things: creates a database, creates a new user, grants the 'connect' privileges to the database:  
+```
+CREATE DATABASE testdb;
+CREATE ROLE <db_user> WITH LOGIN NOSUPERUSER INHERIT CREATEDB NOCREATEROLE NOREPLICATION PASSWORD '<StrongPassword!>';
+GRANT CONNECT ON DATABASE testdb TO <db_user>;
+```
+More syntax and list of priviledges [here...](https://learn.microsoft.com/en-us/training/modules/secure-azure-database-for-postgresql/4-grant-permissions)  
+
+**Encryption**  
+- Data at rest: Encryption's always on and uses Microsoft's managed keys. The encryption uses FIPS (Federal Information Processing Standard) 140-2 validated cryptographic module and an AES (Advanced Encryption Standard) 256-bit cipher.
+- Data in transit:  Transport Layer Security (TLS) and Secure Sockets Layer (SSL) by default. Flexible server supports TLS 1.2 and 1.3 and can't be disabled. ssl_min_protocol_version(default=1.2) and ssl_max_protocol_version allows to set the min and max SSL/TLS version
+
+https://learn.microsoft.com/en-us/azure/postgresql/flexible-server/how-to-connect-scram  
+https://learn.microsoft.com/en-us/azure/postgresql/flexible-server/how-to-connect-tls-ssl  
+https://learn.microsoft.com/en-us/azure/postgresql/flexible-server/concepts-networking
+
+
+**Functions & Procedures:  **
 
