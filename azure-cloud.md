@@ -108,5 +108,72 @@ https://learn.microsoft.com/en-us/azure/postgresql/flexible-server/how-to-connec
 https://learn.microsoft.com/en-us/azure/postgresql/flexible-server/concepts-networking
 
 
-**Functions & Procedures:  **
+### Functions & Procedures:  
+
+There are differences between them, however, which means there are times when you use one or the other:
+
+Functions always return a single value, a scalar value, or a table. Stored procedures might return nothing, a single value, or multiple values.
+Functions can't include DML (Data Manipulation Language) statements such as UPDATE and INSERT. Stored procedures can include any DML statement.
+Functions can't include transactions, whereas stored procedures can. This restriction means that functions can't include COMMIT or ROLLBACK statements.
+Functions can be used within stored procedures. A function can't call a stored procedure.
+Stored procedures are a relatively new addition to PostgreSQL, whereas functions are available for some time.  
+
+
+procedure name must be unique within the schema. You can however overload procedure names by giving the same name to a procedures or function with different argument types.  
+Procedures take the following parameters:
+
+name - optionally include the schema name.  
+argmode - the mode of the argument. Can be IN, INOUT, or VARIADIC. The default is IN. OUT isn't supported; use INOUT instead. VARDIADIC is an undefined number of input arguments of the same type, and must be the last input arguments.  
+argname - argument name.  
+argtype - the argument data type.  
+default_expr - a default expression (of the same type) to be used if the parameter isn't specified. Input parameters following a parameter with a default value must also have default values.  
+lang_name - the language used to write the procedure. Can be sql, c, internal, or the name of a user-defined procedural language, for example, plpgsql.  
+
+```sql
+CREATE PROCEDURE myprocedure (a integer, b integer)
+    LANGUAGE SQL
+    AS $$
+        INSERT INTO mytable VALUES (a, b);
+    $$;
+```
+**Calling a procedure**
+`CALL myprocedure(45,12);` or we can be more verbose when there are many input paramters to avoid confusion: `CALL myprocedure(a=>45, b=>12);`  
+
+[Learn about functions](https://learn.microsoft.com/en-us/training/modules/procedures-functions-postgresql/4-create-function-azure-database-postgresql)
+Official docs: https://www.postgresql.org/docs/current/functions.html
+
+### write ahead logging, WAL  
+
+tldr: When changes are made to the database, they are written to the log, ahead of committing them to data files. If a problem, such as loss of power, the log always holds the latest data and can be used to ensure the database is in a consistent state.  
+Another benefit is that for many small updates, performance is improved as changes to tables and indexes can be written in batches, rather than individually. 
+
+Relvent server paramters:  
+commit_delay - the delay between transaction commit and flushing the log to disk.  
+wal_buffers - the number of disk page buffers in shared memory for write-ahead logging (WAL).  
+max_wal_size - maximum size to let the WAL grow before triggering automatic checkpoint.  
+wal_writer_delay - time interval between WAL flushes performed by the WAL writer.  
+wal_compression - whether full-page writes in the WAL file are compressed.  
+wal_level - determines how much information is written to the WAL. The allowed values are REPLICA(default) or LOGICAL.  
+
+The on-premises version of PostgreSQL allows the log to be used as an archive, allowing you to restore to a point in time using the configuration settings archive_mode and archive_command. Azure Database for PostgreSQL do not give access to file system but do have a Backup feature. We can also configure the retention period in days ie. how long backups should be retained for.  
+
+**High availability**: Azure Postgres service allows us to configure high availability which provides a _standby_ server located in seperated availability zone. Data is replicated from the primary server to the standby server using PostgreSQL streaming replication in synchronous mode. High availability isn't supported for Burstable tier.  
+<img width="808" height="401" alt="image" src="https://github.com/user-attachments/assets/81ba9642-251a-463f-b398-b0b9035d7d00" />
+
+Note that this is a disaster recovery option and we cannot use the standby server in our workload(e.g. using standby server databaes as read-only). To establish a main server and read-only server  architecture, we can use a sub-pub model and configure replication between two Azure managed Postgres servers.
+
+**Logical Decoding** is the process of extracting all persistent changes to a database's tables into a coherent, easy to understand format which can be interpreted without detailed knowledge of the database's internal state. It is used for auditing, analytics, or any other reason you might be interested in knowing what changed, and when it changed. Azure supports wal2json extension and also pglogical extension(allows logical streaming replication). [Learn More](https://learn.microsoft.com/en-us/training/modules/understand-write-ahead-logging/3-understand-replication-logical-decode)   
+Exercise: [List table](https://learn.microsoft.com/en-us/training/modules/understand-write-ahead-logging/4-exercise-list-table-changes-logical-decode) changes with logical decoding.
+
+[Learn More!](https://learn.microsoft.com/en-us/training/modules/understand-write-ahead-logging/6-summary)  
+
+
+
+
+
+
+
+
+
+
 
